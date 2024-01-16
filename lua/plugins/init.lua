@@ -4,11 +4,14 @@ local default_plugins = {
 
   "nvim-lua/plenary.nvim",
 
+  -- color
+  { "ellisonleao/gruvbox.nvim", lazy = false },
+
   {
     "NvChad/base46",
     branch = "v2.0",
     build = function()
-      require("base46").load_all_highlights()
+      -- require("base46").load_all_highlights()
     end,
   },
 
@@ -41,6 +44,14 @@ local default_plugins = {
       vim.defer_fn(function()
         require("colorizer").attach_to_buffer(0)
       end, 0)
+    end,
+  },
+
+  {
+    "nvim-tree/nvim-tree.lua",
+    config = function(_, opts)
+      dofile(vim.g.base46_cache .. "nvim-tree")
+      require("nvim-web-devicons").setup(opts)
     end,
   },
 
@@ -96,18 +107,16 @@ local default_plugins = {
       vim.api.nvim_create_autocmd({ "BufRead" }, {
         group = vim.api.nvim_create_augroup("GitSignsLazyLoad", { clear = true }),
         callback = function()
-          vim.fn.jobstart({"git", "-C", vim.loop.cwd(), "rev-parse"},
-            {
-              on_exit = function(_, return_code)
-                if return_code == 0 then
-                  vim.api.nvim_del_augroup_by_name "GitSignsLazyLoad"
-                  vim.schedule(function()
-                    require("lazy").load { plugins = { "gitsigns.nvim" } }
-                  end)
-                end
+          vim.fn.jobstart({ "git", "-C", vim.loop.cwd(), "rev-parse" }, {
+            on_exit = function(_, return_code)
+              if return_code == 0 then
+                vim.api.nvim_del_augroup_by_name "GitSignsLazyLoad"
+                vim.schedule(function()
+                  require("lazy").load { plugins = { "gitsigns.nvim" } }
+                end)
               end
-            }
-          )
+            end,
+          })
         end,
       })
     end,
@@ -267,6 +276,27 @@ local default_plugins = {
     config = function(_, opts)
       dofile(vim.g.base46_cache .. "whichkey")
       require("which-key").setup(opts)
+    end,
+  },
+
+  -- LSP trouble
+  {
+    "folke/trouble.nvim",
+    cmd = "Trouble",
+    config = function(_, opts)
+      require("nvim-web-devicons").setup(opts)
+      require("trouble").setup {
+        position = "bottom",
+        signs = {
+          -- icons / text used for a diagnostic
+          error = "",
+          warning = "",
+          hint = "",
+          information = "",
+          other = "",
+        },
+        use_diagnostic_signs = false,
+      }
     end,
   },
 }
